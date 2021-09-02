@@ -27,11 +27,11 @@ function varargout = maingui1(varargin)
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @maingui1_OpeningFcn, ...
-                   'gui_OutputFcn',  @maingui1_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @maingui1_OpeningFcn, ...
+    'gui_OutputFcn',  @maingui1_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -63,7 +63,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = maingui1_OutputFcn(hObject, eventdata, handles) 
+function varargout = maingui1_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -175,14 +175,14 @@ global Ghandles_axes1;
 Ghandles_axes1=handles.axes1;
 global Ghandles;
 Ghandles=handles;
-global my_timer; 
+global my_timer;
 global hplot1;
 axis(Ghandles_axes1);
 hplot1=plot(NaN,NaN);
 if (~isnan(str2double(get(handles.edit3,'String'))))&&((str2double(get(handles.edit3,'String')))>0.001)
-my_timer = loopeveryone(str2double(get(handles.edit3,'String')));
+    my_timer = loopeveryone(str2double(get(handles.edit3,'String')));
 else
-my_timer = loopeveryone(0.1);
+    my_timer = loopeveryone(0.1);
 end
 
 
@@ -219,19 +219,24 @@ end
 if isempty(currentOfT_x)
     currentOfT_x=[1];
 end
-if size(currentOfT_x,2)>=round(str2double(get(Ghandles.edit4,'String')))
-    var_diff=size(currentOfT_x,2)-round(str2double(get(Ghandles.edit4,'String')));
-    currentOfT_x=currentOfT_x(2+var_diff:end);
-end
-if size(currentOfT,2)>=round(str2double(get(Ghandles.edit4,'String')))
-    var_diff=size(currentOfT,2)-round(str2double(get(Ghandles.edit4,'String')));
-    currentOfT=currentOfT(2+var_diff:end);
-end
+var_maxPlotX=round(str2double(get(Ghandles.edit4,'String')));
+%if size(currentOfT_x,2)>=round(str2double(get(Ghandles.edit4,'String')))
+%    var_diff=size(currentOfT_x,2)-round(str2double(get(Ghandles.edit4,'String')));
+%    currentOfT_x=currentOfT_x(2+var_diff:end);
+%end
+%if size(currentOfT,2)>=round(str2double(get(Ghandles.edit4,'String')))
+%    var_diff=size(currentOfT,2)-round(str2double(get(Ghandles.edit4,'String')));
+%    currentOfT=currentOfT(2+var_diff:end);
+%end
 currentOfT=[currentOfT currentOfT(end)+1];
 currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
 global hplot1;
 if(size(currentOfT_x,2)==size(currentOfT,2))
-set(hplot1,'XData',currentOfT_x,'YData',currentOfT);
+    if size(currentOfT_x,2)>round(str2double(get(Ghandles.edit4,'String')))
+        set(hplot1,'XData',currentOfT_x((size(currentOfT_x,2)-var_maxPlotX):end),'YData',currentOfT((size(currentOfT,2)-var_maxPlotX):end));
+    else
+        set(hplot1,'XData',currentOfT_x,'YData',currentOfT);
+    end
 else
     tmp_error_log=sprintf("ERROR!!! \t size of currentOfT_x=%d and currentOfT=%d is different...",size(currentOfT_x,2),size(currentOfT,2));
     disp(tmp_error_log);
