@@ -78,12 +78,13 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global currentOfT;
-if isempty(currentOfT)
-    currentOfT=[1];
-end
-currentOfT=[currentOfT currentOfT(end)+1];
-plot(currentOfT,currentOfT);
+%global currentOfT;
+%if isempty(currentOfT)
+%    currentOfT=[1];
+%end
+%currentOfT=[currentOfT currentOfT(end)+1];
+%plot(currentOfT,currentOfT);
+clear global
 
 
 % --- Executes on slider movement.
@@ -179,6 +180,8 @@ global my_timer;
 global hplot1;
 axis(Ghandles_axes1);
 hplot1=plot(NaN,NaN);
+global intg;
+intg=0;
 if (~isnan(str2double(get(handles.edit3,'String'))))&&((str2double(get(handles.edit3,'String')))>0.001)
     my_timer = loopeveryone(str2double(get(handles.edit3,'String')));
 else
@@ -213,6 +216,7 @@ global Ghandles;
 %disp('===============');
 global currentOfT;
 global currentOfT_x;
+global intg;
 if isempty(currentOfT)
     currentOfT=[1];
 end
@@ -228,8 +232,13 @@ var_maxPlotX=round(str2double(get(Ghandles.edit4,'String')));
 %    var_diff=size(currentOfT,2)-round(str2double(get(Ghandles.edit4,'String')));
 %    currentOfT=currentOfT(2+var_diff:end);
 %end
-currentOfT=[currentOfT currentOfT(end)+1];
+var_a=str2double(get(Ghandles.edit1,'String'));
+var_b=str2double(get(Ghandles.edit2,'String'));
 currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
+intg=intg+(exp(var_b*currentOfT_x(end)/var_a))*get(Ghandles.slider1,'Value');
+var_newpoint=(intg/var_a)*(exp((-1)*var_b*currentOfT_x(end)/var_a));
+currentOfT=[currentOfT var_newpoint];
+set(Ghandles.text7,'string',intg);
 global hplot1;
 if(size(currentOfT_x,2)==size(currentOfT,2))
     if size(currentOfT_x,2)>round(str2double(get(Ghandles.edit4,'String')))
