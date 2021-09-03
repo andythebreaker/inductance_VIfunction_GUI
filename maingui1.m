@@ -181,12 +181,6 @@ Ghandles_axes2=handles.axes2;
 global Ghandles;
 global my_timer;
 global hplot1;
-<<<<<<< HEAD
-axis(Ghandles_axes1);
-hplot1=plot(NaN,NaN);
-%global intg;
-%intg=0;
-=======
 %global H_1;
 global H_2;
 %axis(Ghandles_axes1);
@@ -199,7 +193,6 @@ legend(Ghandles_axes2,"Inductor voltage","Input power supply voltage",'Location'
 global intg;
 intg=0;
 calc_tau();
->>>>>>> 562d1dcaa2b06c4d7c26fb91436cfc7c1e1c48f9
 if (~isnan(str2double(get(handles.edit3,'String'))))&&((str2double(get(handles.edit3,'String')))>0.001)
     my_timer = loopeveryone(str2double(get(handles.edit3,'String')));
 else
@@ -255,7 +248,7 @@ end
 %disp('===============');
 global currentOfT;
 global currentOfT_x;
-%global intg;
+global intg;
 if isempty(currentOfT)
     currentOfT=[0];
 end
@@ -280,12 +273,6 @@ var_maxPlotX=round(str2double(get(Ghandles.edit4,'String')));
 %end
 var_a=str2double(get(Ghandles.edit1,'String'));
 var_b=str2double(get(Ghandles.edit2,'String'));
-<<<<<<< HEAD
-var_v=get(Ghandles.slider1,'Value');
-currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
-%intg=intg+(exp(var_b*currentOfT_x(end)/var_a))*get(Ghandles.slider1,'Value');
-var_newpoint=var_v/var_b*(1-exp((-1)*(var_b/var_a)*(currentOfT_x(end))));
-=======
 var_t=currentOfT_x(end)*str2double(get(Ghandles.edit3,'String'));
 currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
 intg=intg+(exp(var_b*var_t/var_a))*get(Ghandles.slider1,'Value');
@@ -296,9 +283,8 @@ if isinf(intg)
 stop(my_timer);
 end
 var_newpoint=(intg/var_a)*(exp((-1)*var_b*var_t/var_a));
->>>>>>> 562d1dcaa2b06c4d7c26fb91436cfc7c1e1c48f9
 currentOfT=[currentOfT var_newpoint];
-set(Ghandles.text7,'string',var_newpoint);
+set(Ghandles.text7,'string',intg);
 global hplot1;
 vofl=[vofl (currentOfT(end)-currentOfT(size(currentOfT,2)-1))*var_a];
 if(size(currentOfT_x,2)==size(currentOfT,2))
