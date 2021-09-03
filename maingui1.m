@@ -22,7 +22,7 @@ function varargout = maingui1(varargin)
 
 % Edit the above text to modify the response to help maingui1
 
-% Last Modified by GUIDE v2.5 03-Sep-2021 02:48:07
+% Last Modified by GUIDE v2.5 03-Sep-2021 13:04:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -118,6 +118,7 @@ function edit1_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
 edit_text_only_numb(hObject);
+calc_tau();
 
 
 % --- Executes during object creation, after setting all properties.
@@ -142,6 +143,7 @@ function edit2_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
 edit_text_only_numb(hObject);
+calc_tau();
 
 
 % --- Executes during object creation, after setting all properties.
@@ -177,18 +179,20 @@ Ghandles_axes1=handles.axes1;
 global Ghandles_axes2;
 Ghandles_axes2=handles.axes2;
 global Ghandles;
-Ghandles=handles;
 global my_timer;
 global hplot1;
 %global H_1;
 global H_2;
 %axis(Ghandles_axes1);
 hplot1=plot(Ghandles_axes1,NaN,NaN);
+legend(Ghandles_axes1,"current",'Location','southwest');
 %axis(Ghandles_axes2);
 %H_1=plot(Ghandles_axes2,NaN,NaN);
 H_2=plot(Ghandles_axes2,NaN,NaN,NaN,NaN);
+legend(Ghandles_axes2,"Inductor voltage","Input power supply voltage",'Location','southwest');
 global intg;
 intg=0;
+calc_tau();
 if (~isnan(str2double(get(handles.edit3,'String'))))&&((str2double(get(handles.edit3,'String')))>0.001)
     my_timer = loopeveryone(str2double(get(handles.edit3,'String')));
 else
@@ -219,6 +223,25 @@ function myfun(obj,evt)
 global Ghandles;
 global Ghandles_axes1;
 global Ghandles_axes2;
+global vv;
+global vofl;
+global pwmcount;
+if isempty(pwmcount)
+    pwmcount=0;
+end
+if get(Ghandles.checkbox1,'Value')
+    pwmt=calc_tau();
+    pwmhp=get(Ghandles.slider2,'Value');
+    if pwmcount>pwmt
+        pwmcount=0;
+        set(Ghandles.slider1,'Value',45);
+    end
+    pwmhc=pwmt*pwmhp;
+    if pwmcount>pwmhc
+        set(Ghandles.slider1,'Value',5);
+    end
+    pwmcount=pwmcount+1;
+end
 %for i=1:3
 %    disp(datestr(now));
 %end
@@ -227,11 +250,18 @@ global currentOfT;
 global currentOfT_x;
 global intg;
 if isempty(currentOfT)
-    currentOfT=[1];
+    currentOfT=[0];
 end
 if isempty(currentOfT_x)
-    currentOfT_x=[1];
+    currentOfT_x=[0];
 end
+if isempty(vv)
+    vv=[0];
+end
+if isempty(vofl)
+    vofl=[0];
+end
+vv=[vv get(Ghandles.slider1,'Value')];
 var_maxPlotX=round(str2double(get(Ghandles.edit4,'String')));
 %if size(currentOfT_x,2)>=round(str2double(get(Ghandles.edit4,'String')))
 %    var_diff=size(currentOfT_x,2)-round(str2double(get(Ghandles.edit4,'String')));
@@ -243,29 +273,35 @@ var_maxPlotX=round(str2double(get(Ghandles.edit4,'String')));
 %end
 var_a=str2double(get(Ghandles.edit1,'String'));
 var_b=str2double(get(Ghandles.edit2,'String'));
+var_t=currentOfT_x(end)*str2double(get(Ghandles.edit3,'String'));
 currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
-intg=intg+(exp(var_b*currentOfT_x(end)/var_a))*get(Ghandles.slider1,'Value');
+intg=intg+(exp(var_b*var_t/var_a))*get(Ghandles.slider1,'Value');
 global my_timer;
 %global H_1;
 global H_2;
 if isinf(intg)
 stop(my_timer);
 end
-var_newpoint=(intg/var_a)*(exp((-1)*var_b*currentOfT_x(end)/var_a));
+var_newpoint=(intg/var_a)*(exp((-1)*var_b*var_t/var_a));
 currentOfT=[currentOfT var_newpoint];
 set(Ghandles.text7,'string',intg);
 global hplot1;
+vofl=[vofl (currentOfT(end)-currentOfT(size(currentOfT,2)-1))*var_a];
 if(size(currentOfT_x,2)==size(currentOfT,2))
     %axis(Ghandles_axes1);
     if size(currentOfT_x,2)>round(str2double(get(Ghandles.edit4,'String')))
         set(hplot1,'XData',currentOfT_x((size(currentOfT_x,2)-var_maxPlotX):end),'YData',currentOfT((size(currentOfT,2)-var_maxPlotX):end));
+     set(H_2(2),'XData',currentOfT_x((size(currentOfT_x,2)-var_maxPlotX):end),'YData',vv((size(vv,2)-var_maxPlotX):end));
+     set(H_2(1),'XData',currentOfT_x,'YData',vofl((size(vofl,2)-var_maxPlotX):end));
     else
         set(hplot1,'XData',currentOfT_x,'YData',currentOfT);
+            set(H_2(2),'XData',currentOfT_x,'YData',vv);
+            set(H_2(1),'XData',currentOfT_x,'YData',vofl);
     end
     %axis(Ghandles_axes2);
     %set(H_1,'XData',currentOfT_x,'YData',currentOfT);
-    set(H_2(1),'XData',currentOfT_x,'YData',currentOfT);
-    set(H_2(2),'XData',currentOfT_x,'YData',currentOfT_x);
+    %set(H_2(1),'XData',currentOfT_x,'YData',currentOfT);
+    %set(H_2(2),'XData',currentOfT_x,'YData',currentOfT_x);
 else
     tmp_error_log=sprintf("ERROR!!! \t size of currentOfT_x=%d and currentOfT=%d is different...",size(currentOfT_x,2),size(currentOfT,2));
     disp(tmp_error_log);
@@ -280,6 +316,7 @@ function edit3_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit3 as text
 %        str2double(get(hObject,'String')) returns contents of edit3 as a double
 edit_text_only_numb(hObject);
+calc_tau();
 
 % --- Executes during object creation, after setting all properties.
 function edit3_CreateFcn(hObject, eventdata, handles)
@@ -316,3 +353,55 @@ function edit4_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on slider movement.
+function slider2_Callback(hObject, eventdata, handles)
+% hObject    handle to slider2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function slider2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on button press in .heckbox1.
+function checkbox1_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox1
+
+function tau=calc_tau()
+global Ghandles;
+if get(Ghandles.checkbox1,'Value')
+var_l=str2double(get(Ghandles.edit1,'String'));
+var_r=str2double(get(Ghandles.edit2,'String'));
+var_ar=str2double(get(Ghandles.edit3,'String'));
+tau=(var_l/var_r)*5.0*(1.0/var_ar);
+set(Ghandles.text10,"String",tau);
+else
+    tau=0;
+end
+
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Ghandles;
+Ghandles=handles;
