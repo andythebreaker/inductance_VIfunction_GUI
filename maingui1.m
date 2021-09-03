@@ -174,12 +174,19 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global Ghandles_axes1;
 Ghandles_axes1=handles.axes1;
+global Ghandles_axes2;
+Ghandles_axes2=handles.axes2;
 global Ghandles;
 Ghandles=handles;
 global my_timer;
 global hplot1;
-axis(Ghandles_axes1);
-hplot1=plot(NaN,NaN);
+%global H_1;
+global H_2;
+%axis(Ghandles_axes1);
+hplot1=plot(Ghandles_axes1,NaN,NaN);
+%axis(Ghandles_axes2);
+%H_1=plot(Ghandles_axes2,NaN,NaN);
+H_2=plot(Ghandles_axes2,NaN,NaN,NaN,NaN);
 global intg;
 intg=0;
 if (~isnan(str2double(get(handles.edit3,'String'))))&&((str2double(get(handles.edit3,'String')))>0.001)
@@ -210,6 +217,8 @@ start(a);
 
 function myfun(obj,evt)
 global Ghandles;
+global Ghandles_axes1;
+global Ghandles_axes2;
 %for i=1:3
 %    disp(datestr(now));
 %end
@@ -236,16 +245,27 @@ var_a=str2double(get(Ghandles.edit1,'String'));
 var_b=str2double(get(Ghandles.edit2,'String'));
 currentOfT_x=[currentOfT_x currentOfT_x(end)+1];
 intg=intg+(exp(var_b*currentOfT_x(end)/var_a))*get(Ghandles.slider1,'Value');
+global my_timer;
+%global H_1;
+global H_2;
+if isinf(intg)
+stop(my_timer);
+end
 var_newpoint=(intg/var_a)*(exp((-1)*var_b*currentOfT_x(end)/var_a));
 currentOfT=[currentOfT var_newpoint];
 set(Ghandles.text7,'string',intg);
 global hplot1;
 if(size(currentOfT_x,2)==size(currentOfT,2))
+    %axis(Ghandles_axes1);
     if size(currentOfT_x,2)>round(str2double(get(Ghandles.edit4,'String')))
         set(hplot1,'XData',currentOfT_x((size(currentOfT_x,2)-var_maxPlotX):end),'YData',currentOfT((size(currentOfT,2)-var_maxPlotX):end));
     else
         set(hplot1,'XData',currentOfT_x,'YData',currentOfT);
     end
+    %axis(Ghandles_axes2);
+    %set(H_1,'XData',currentOfT_x,'YData',currentOfT);
+    set(H_2(1),'XData',currentOfT_x,'YData',currentOfT);
+    set(H_2(2),'XData',currentOfT_x,'YData',currentOfT_x);
 else
     tmp_error_log=sprintf("ERROR!!! \t size of currentOfT_x=%d and currentOfT=%d is different...",size(currentOfT_x,2),size(currentOfT,2));
     disp(tmp_error_log);
